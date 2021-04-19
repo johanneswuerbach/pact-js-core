@@ -10,15 +10,15 @@ DASHERISED_VERSION=$(echo "${STANDALONE_VERSION}" | sed 's/\./\-/g')
 BRANCH_NAME="chore/upgrade-to-pact-ruby-standalone-${DASHERISED_VERSION}"
 
 git checkout master
-git checkout standalone/install.ts
+git checkout standalone/versions.ts
 git pull origin master
 
 git checkout -b ${BRANCH_NAME}
 
-cat standalone/install.ts | sed "s/export const PACT_STANDALONE_VERSION.*/export const PACT_STANDALONE_VERSION = '${STANDALONE_VERSION}';/" > tmp-install
-mv tmp-install standalone/install.ts
+cat standalone/versions.ts | sed "s/export const PACT_STANDALONE_VERSION.*/export const PACT_STANDALONE_VERSION = '${STANDALONE_VERSION}';/" > tmp-versions
+mv tmp-versions standalone/versions.ts
 
-git add standalone/install.ts
+git add standalone/versions.ts
 git commit -m "${TYPE}: update standalone to ${STANDALONE_VERSION}"
 git push --set-upstream origin ${BRANCH_NAME}
 

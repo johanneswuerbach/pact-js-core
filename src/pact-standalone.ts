@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { getBinaryEntry } from '../standalone/install';
+import { getBinaryEntries } from '../standalone/config';
 import pactEnvironment from './pact-environment';
 
 export interface PactStandalone {
@@ -34,8 +34,9 @@ export const standalone = (
   const pact = binName('pact');
   const basePath = path.join(
     'standalone',
-    getBinaryEntry(platform, arch).filter(e => e.type === 'ruby-standalone')[0]
-      .folderName,
+    getBinaryEntries(platform, arch).filter(
+      e => e.type === 'ruby-standalone'
+    )[0].folderName,
     'pact',
     'bin'
   );

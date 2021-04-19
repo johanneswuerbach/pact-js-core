@@ -1,6 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import install, { BinaryEntry, createConfig, getBinaryEntry } from './install';
+import install, {
+  BinaryEntry,
+  createConfig,
+  getBinaryEntries,
+} from './install';
 import { FS } from './__mocks__/fs';
 
 jest.mock('fs');
@@ -121,7 +125,7 @@ describe('Install', () => {
     });
 
     it('Should download it', async () => {
-      const { binaryChecksum, binary } = getBinaryEntry('linux', 'ia32');
+      const { binaryChecksum, binary } = getBinaryEntries('linux', 'ia32');
       ((fs as unknown) as FS).initFS({
         [path.join(__dirname, binary)]: 'mock binary',
         [path.join(__dirname, binaryChecksum)]: 'mock binary checksum',

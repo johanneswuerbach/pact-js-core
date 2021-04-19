@@ -55,8 +55,9 @@ ts-node-*
 
 # pact standalone binaries
 standalone/*
+!standalone/*/
 !standalone/__fixtures__/.keep
-!standalone/*.ts
+!standalone/**/*.ts
 standalone/*.d.ts
 
 # Folders created during testing
