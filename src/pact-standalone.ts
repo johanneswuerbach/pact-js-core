@@ -34,7 +34,8 @@ export const standalone = (
   const pact = binName('pact');
   const basePath = path.join(
     'standalone',
-    getBinaryEntry(platform, arch).folderName,
+    getBinaryEntry(platform, arch).filter(e => e.type === 'ruby-standalone')[0]
+      .folderName,
     'pact',
     'bin'
   );

@@ -2,6 +2,8 @@ import * as http from 'http';
 import * as Request from 'request';
 import unzipper = require('unzipper');
 import tar = require('tar');
+import { PackageConfig, Config, Data, BinaryEntry } from './types';
+
 import pactEnvironment from '../src/pact-environment';
 // we have to use ES6 imports as it's providing correct types for chalk.
 import chalk from 'chalk';
@@ -24,7 +26,10 @@ const request = Request.defaults({
 
 // Get latest version from https://github.com/pact-foundation/pact-ruby-standalone/releases
 export const PACT_STANDALONE_VERSION = '1.88.48';
+// Get latest version from https://github.com/pact-foundation/pact-reference/releases
+export const PACT_FFI_VERSION = '0.0.18';
 const PACT_DEFAULT_LOCATION = `https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v${PACT_STANDALONE_VERSION}/`;
+const PACT_FFI_DEFAULT_LOCATION = `https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v${PACT_FFI_VERSION}/`;
 const HTTP_REGEX = /^http(s?):\/\//;
 
 function join(...paths: string[]): string {
@@ -88,6 +93,7 @@ export function createConfig(location: string = process.cwd()): Config {
         binaryChecksum: `pact-${PACT_STANDALONE_VERSION}-win32.zip${CHECKSUM_SUFFIX}`,
         downloadLocation: PACT_BINARY_LOCATION,
         folderName: `win32-${PACT_STANDALONE_VERSION}`,
+        type: 'ruby-standalone',
       },
       {
         platform: 'darwin',
@@ -95,6 +101,7 @@ export function createConfig(location: string = process.cwd()): Config {
         binaryChecksum: `pact-${PACT_STANDALONE_VERSION}-osx.tar.gz${CHECKSUM_SUFFIX}`,
         downloadLocation: PACT_BINARY_LOCATION,
         folderName: `darwin-${PACT_STANDALONE_VERSION}`,
+        type: 'ruby-standalone',
       },
       {
         platform: 'linux',
@@ -103,6 +110,7 @@ export function createConfig(location: string = process.cwd()): Config {
         binaryChecksum: `pact-${PACT_STANDALONE_VERSION}-linux-x86_64.tar.gz${CHECKSUM_SUFFIX}`,
         downloadLocation: PACT_BINARY_LOCATION,
         folderName: `linux-x64-${PACT_STANDALONE_VERSION}`,
+        type: 'ruby-standalone',
       },
       {
         platform: 'linux',
@@ -111,6 +119,15 @@ export function createConfig(location: string = process.cwd()): Config {
         binaryChecksum: `pact-${PACT_STANDALONE_VERSION}-linux-x86.tar.gz${CHECKSUM_SUFFIX}`,
         downloadLocation: PACT_BINARY_LOCATION,
         folderName: `linux-ia32-${PACT_STANDALONE_VERSION}`,
+        type: 'ruby-standalone',
+      },
+      {
+        platform: 'darwin',
+        binary: `libpact_mock_server_ffi-osx-x86_64.a.gz`,
+        binaryChecksum: `skip`,
+        downloadLocation: PACT_FFI_DEFAULT_LOCATION,
+        folderName: `darwin-${PACT_FFI_VERSION}-ffi`,
+        type: 'rust-ffi',
       },
     ],
   };
@@ -293,26 +310,36 @@ function extract(data: Data): Promise<Data> {
   }
 
   // Make sure checksum is available
-  if (!fs.existsSync(data.checksumFilepath)) {
+  if (
+    !fs.existsSync(data.checksumFilepath) &&
+    data.checksumFilepath !== 'skip'
+  ) {
+    console.error(data.checksumDownloadPath);
     throwError(`Checksum file missing from standalone directory. Aborting.`);
   }
 
   fs.mkdirSync(data.platformFolderPath as string);
-  console.log(chalk.yellow(`Extracting binary from ${data.filepath}.`));
+  console.log(
+    chalk.yellow(
+      `Extracting binary from ${data.filepath}. (${JSON.stringify(data)})`
+    )
+  );
 
   // Validate checksum to make sure it's the correct binary
   const basename = path.basename(data.filepath);
   return (
-    sumchecker('sha1', data.checksumFilepath, __dirname, basename)
-      .then(
-        () => console.log(chalk.green(`Checksum passed for '${basename}'.`)),
-        () =>
-          throwError(
-            `Checksum rejected for file '${basename}' with checksum ${path.basename(
-              data.checksumFilepath
-            )}`
-          )
-      )
+    (data.checksumFilepath !== 'skip'
+      ? sumchecker('sha1', data.checksumFilepath, __dirname, basename).then(
+          () => console.log(chalk.green(`Checksum passed for '${basename}'.`)),
+          () =>
+            throwError(
+              `Checksum rejected for file '${basename}' with checksum ${path.basename(
+                data.checksumFilepath
+              )}`
+            )
+        )
+      : Promise.resolve()
+    )
       // Extract files into their platform folder
       .then(() =>
         data.isWindows
@@ -345,16 +372,6 @@ function extract(data: Data): Promise<Data> {
         console.log(chalk.green('Extraction done.'));
       })
       .then(() => {
-        console.log(
-          '\n\n' +
-            chalk.bgYellow(
-              chalk.black('### If you') +
-                chalk.red(' ❤ ') +
-                chalk.black('Pact and want to support us, please donate here:')
-            ) +
-            chalk.blue(' http://donate.pact.io/node') +
-            '\n\n'
-        );
         return Promise.resolve(data);
       })
       .catch((e: Error) =>
@@ -363,34 +380,40 @@ function extract(data: Data): Promise<Data> {
   );
 }
 
-export function getBinaryEntry(platform?: string, arch?: string): BinaryEntry {
-  platform = platform || process.platform;
-  arch = arch || process.arch;
-  for (let value of CONFIG.binaries) {
-    if (
-      value.platform === platform &&
-      (value.arch ? value.arch === arch : true)
-    ) {
-      return value;
-    }
-  }
-  throw throwError(
-    `Cannot find binary for platform '${platform}' with architecture '${arch}'.`
+export function getBinaryEntry(
+  platform: string = process.platform,
+  arch: string = process.arch
+): BinaryEntry[] {
+  const entries = CONFIG.binaries.filter(
+    value =>
+      value.platform === platform && (value.arch ? value.arch === arch : true)
   );
+
+  if (entries.length === 0) {
+    throw throwError(
+      `Cannot find binary for platform '${platform}' with architecture '${arch}'.`
+    );
+  }
+  return entries;
 }
 
-function setup(platform?: string, arch?: string): Promise<Data> {
-  const entry = getBinaryEntry(platform, arch);
-  return Promise.resolve({
-    binaryDownloadPath: join(entry.downloadLocation, entry.binary),
-    checksumDownloadPath: join(PACT_DEFAULT_LOCATION, entry.binaryChecksum),
-    filepath: path.resolve(__dirname, entry.binary),
-    checksumFilepath: path.resolve(__dirname, entry.binaryChecksum),
-    isWindows: pactEnvironment.isWindows(platform),
-    platform: entry.platform,
-    arch: entry.arch,
-    platformFolderPath: path.resolve(__dirname, entry.folderName),
-  });
+function setup(platform?: string, arch?: string): Promise<Data[]> {
+  const entries = getBinaryEntry(platform, arch);
+  return Promise.resolve(
+    entries.map(entry => ({
+      binaryDownloadPath: join(entry.downloadLocation, entry.binary),
+      checksumDownloadPath: join(PACT_DEFAULT_LOCATION, entry.binaryChecksum),
+      filepath: path.resolve(__dirname, entry.binary),
+      checksumFilepath:
+        entry.binaryChecksum === 'skip'
+          ? 'skip'
+          : path.resolve(__dirname, entry.binaryChecksum),
+      isWindows: pactEnvironment.isWindows(platform),
+      platform: entry.platform,
+      arch: entry.arch,
+      platformFolderPath: path.resolve(__dirname, entry.folderName),
+    }))
+  );
 }
 
 // This function is unused, but I'm not touching it.
@@ -398,27 +421,34 @@ export function downloadChecksums(): Promise<void> {
   console.log(chalk.gray(`Downloading All Pact Standalone Binary Checksums.`));
   return Promise.all(
     CONFIG.binaries.map(value =>
-      setup(value.platform, value.arch).then((data: Data) =>
-        downloadFileRetry(
-          data.checksumDownloadPath,
-          data.checksumFilepath
-        ).then(
-          () => {
-            console.log(
-              chalk.green(
-                `Finished downloading checksum ${path.basename(
-                  data.checksumFilepath
-                )}`
-              )
-            );
-            return data;
-          },
-          (e: string) =>
-            throwError(
-              `Error downloading checksum from ${data.checksumDownloadPath}: ${e}`
-            )
+      setup(value.platform, value.arch)
+        .then((allData: Data[]) =>
+          allData.filter(({ checksumFilepath }) => checksumFilepath !== 'skip')
         )
-      )
+        .then((checksums: Data[]) =>
+          Promise.all(
+            checksums.map(data =>
+              downloadFileRetry(
+                data.checksumDownloadPath,
+                data.checksumFilepath
+              ).then(
+                () => {
+                  console.log(
+                    chalk.green(
+                      `Finished downloading checksum ${path.basename(
+                        data.checksumFilepath
+                      )}`
+                    )
+                  );
+                },
+                error =>
+                  throwError(
+                    `Error downloading checksum from ${data.checksumDownloadPath}: ${error}`
+                  )
+              )
+            )
+          )
+        )
     )
   ).then(
     () => console.log(chalk.green('All checksums downloaded.')),
@@ -426,58 +456,37 @@ export function downloadChecksums(): Promise<void> {
   );
 }
 
-export default (platform?: string, arch?: string): Promise<Data> => {
+export default (platform?: string, arch?: string): Promise<Data[]> => {
   if (process.env.PACT_SKIP_BINARY_INSTALL === 'true') {
     console.log(
       chalk.yellow(
         "Skipping binary installation. Env var 'PACT_SKIP_BINARY_INSTALL' was found."
       )
     );
-    return Promise.resolve({
-      binaryInstallSkipped: true,
-    } as Data);
+    return Promise.resolve([
+      {
+        binaryInstallSkipped: true,
+      },
+    ] as Data[]);
   }
   return setup(platform, arch)
-    .then(download)
-    .then(extract)
-    .then(d => {
+    .then(entries => Promise.all(entries.map(d => download(d))))
+    .then(entries => Promise.all(entries.map(d => extract(d))))
+    .then(entries => {
+      console.log(
+        '\n\n' +
+          chalk.bgYellow(
+            chalk.black('### If you') +
+              chalk.red(' ❤ ') +
+              chalk.black('Pact and want to support us, please donate here:')
+          ) +
+          chalk.blue(' http://donate.pact.io/node') +
+          '\n\n'
+      );
       console.log(chalk.green('Pact Standalone Binary is ready.'));
-      return { ...d, binaryInstallSkipped: false };
+      return entries;
     })
     .catch((e: string) =>
       throwError(`Postinstalled Failed Unexpectedly: ${e}`)
     );
 };
-
-export interface PackageConfig {
-  binaryLocation?: string;
-  doNotTrack?: boolean;
-}
-
-export interface Config {
-  doNotTrack: boolean;
-  binaries: BinaryEntry[];
-}
-
-export interface Data {
-  binaryDownloadPath: string;
-  checksumDownloadPath: string;
-  filepath: string;
-  checksumFilepath: string;
-  platform: string;
-  isWindows: boolean;
-  arch?: string;
-  platformFolderPath?: string;
-  binaryInstallSkipped?: boolean;
-  binaryAlreadyDownloaded?: boolean;
-  binaryAlreadyInstalled?: boolean;
-}
-
-export interface BinaryEntry {
-  platform: string;
-  arch?: string;
-  binary: string;
-  binaryChecksum: string;
-  downloadLocation: string;
-  folderName: string;
-}
