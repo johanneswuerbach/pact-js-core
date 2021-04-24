@@ -1,1 +1,1 @@
-require('./standalone/install').downloadChecksums();
+require('./dist/standalone/downloadChecksums').downloadChecksums();

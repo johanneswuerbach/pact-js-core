@@ -38,7 +38,12 @@ export function extract(data: Data): Promise<Data> {
   const basename = path.basename(data.filepath);
   return (
     (data.checksumFilepath !== 'skip'
-      ? sumchecker('sha1', data.checksumFilepath, __dirname, basename).then(
+      ? sumchecker(
+          'sha1',
+          data.checksumFilepath,
+          path.dirname(data.filepath),
+          basename
+        ).then(
           () => console.log(chalk.green(`Checksum passed for '${basename}'.`)),
           () =>
             throwError(

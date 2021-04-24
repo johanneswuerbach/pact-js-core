@@ -49,7 +49,7 @@ export const trackDownload = (platform: string): void => {
           cid: Math.round(2147483647 * Math.random()).toString(), // Anonymous Client ID.
           t: 'screenview', // Screenview hit type.
           an: 'pact-install', // App name.
-          av: require('../package.json').version, // App version.
+          av: require('../../../package.json').version, // App version.
           aid: 'pact-node', // App Id - pact-node for historical reasons
           aiid: `standalone-${PACT_STANDALONE_VERSION}`, // App Installer Id.
           cd: `download-node-${platform}-${isCI ? 'ci' : 'user'}`,
