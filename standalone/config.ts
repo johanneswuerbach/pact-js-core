@@ -1,5 +1,5 @@
 import { BinaryEntry, Config, PackageConfig } from './types';
-import { PACT_STANDALONE_VERSION, PACT_FFI_VERSION } from './versions';
+import { PACT_STANDALONE_VERSION } from './versions';
 
 import path = require('path');
 import fs = require('fs');
@@ -7,7 +7,7 @@ import { throwError } from './connectors/console';
 import { isHttpUrl } from './urls';
 
 export const PACT_DEFAULT_LOCATION = `https://github.com/pact-foundation/pact-ruby-standalone/releases/download/v${PACT_STANDALONE_VERSION}/`;
-const PACT_FFI_DEFAULT_LOCATION = `https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v${PACT_FFI_VERSION}/`;
+// const PACT_FFI_DEFAULT_LOCATION = `https://github.com/pact-foundation/pact-reference/releases/download/libpact_mock_server_ffi-v${PACT_FFI_VERSION}/`;
 
 function getBinaryLocation(
   location: string,
@@ -89,14 +89,14 @@ function createConfig(location: string = process.cwd()): Config {
         folderName: `linux-ia32-${PACT_STANDALONE_VERSION}`,
         type: 'ruby-standalone',
       },
-      {
+      /*  {
         platform: 'darwin',
         binary: `libpact_mock_server_ffi-osx-x86_64.a.gz`,
         binaryChecksum: `skip`,
         downloadLocation: PACT_FFI_DEFAULT_LOCATION,
         folderName: `darwin-${PACT_FFI_VERSION}-ffi`,
         type: 'rust-ffi',
-      },
+      },  */
     ],
   };
 }

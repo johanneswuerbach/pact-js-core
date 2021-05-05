@@ -2,7 +2,8 @@ import * as q from 'q';
 import * as path from 'path';
 import serverFactory, { Server, ServerOptions } from './server';
 import stubFactory, { Stub, StubOptions } from './stub';
-import verifierFactory, { VerifierOptions } from './verifier';
+import verifierFactory from './verifier';
+import { VerifierOptions } from './types';
 import messageFactory, { MessageOptions } from './message';
 import publisherFactory, { PublisherOptions } from './publisher';
 import canDeployFactory, {

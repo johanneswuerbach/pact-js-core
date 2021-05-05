@@ -8,13 +8,16 @@ import * as http from 'http';
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
-describe('Verifier Integration Spec', () => {
+describe.only('Verifier Integration Spec', () => {
   let server: http.Server;
   const PORT = 9123;
   const providerBaseUrl = `http://localhost:${PORT}`;
   const providerStatesSetupUrl = `${providerBaseUrl}/provider-state`;
   const pactBrokerBaseUrl = `http://localhost:${PORT}`;
   const monkeypatchFile: string = path.resolve(__dirname, 'monkeypatch.rb');
+  const DEFAULT_ARGS = {
+    providerVersion: 'VERSION',
+  };
 
   before(() =>
     providerMock(PORT).then(s => {
@@ -30,6 +33,7 @@ describe('Verifier Integration Spec', () => {
       it('should return a successful promise', () =>
         expect(
           verifierFactory({
+            ...DEFAULT_ARGS,
             providerBaseUrl: providerBaseUrl,
             pactUrls: [
               path.resolve(

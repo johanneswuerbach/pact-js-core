@@ -3,6 +3,7 @@ import pactEnvironment from '../../src/pact-environment';
 import { Data } from '../types';
 import fs = require('fs');
 import path = require('path');
+// import { ungzip } from 'node-gzip';
 
 import unzipper = require('unzipper');
 import tar = require('tar');
@@ -55,23 +56,28 @@ export function extract(data: Data): Promise<Data> {
       : Promise.resolve()
     )
       // Extract files into their platform folder
-      .then(() =>
-        data.isWindows
-          ? fs
-              .createReadStream(data.filepath)
-              .pipe(
-                unzipper.Extract({
-                  path: data.platformFolderPath,
-                })
-              )
-              .on('entry', entry => entry.autodrain())
-              .promise()
-          : tar.x({
-              file: data.filepath,
-              cwd: data.platformFolderPath,
-              preserveOwner: false,
-            })
-      )
+      .then(() => {
+        if (data.isWindows) {
+          fs.createReadStream(data.filepath)
+            .pipe(
+              unzipper.Extract({
+                path: data.platformFolderPath,
+              })
+            )
+            .on('entry', entry => entry.autodrain())
+            .promise();
+        } else if (data.filepath.endsWith('.tar.gz')) {
+          tar.x({
+            file: data.filepath,
+            cwd: data.platformFolderPath,
+            preserveOwner: false,
+          });
+        } else if (data.filepath.endsWith('.gz')) {
+          throw new Error(`Implement this: ${data.filepath}`);
+        } else {
+          throw new Error(`Unknown file type extracting: ${data.filepath}`);
+        }
+      })
       .then(() => {
         // Remove pact-publish as it's getting deprecated
         const publishPath = path.resolve(
