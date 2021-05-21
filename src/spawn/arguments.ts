@@ -7,7 +7,7 @@ import { CanDeployOptions } from '../can-deploy';
 import { MessageOptions } from '../message';
 import { PublisherOptions } from '../publisher';
 import { ServiceOptions } from '../service';
-import { VerifierOptions } from '../types';
+import { VerifierOptions } from '../verifier/types';
 
 export type CliVerbOptions = {
   cliVerb: string;

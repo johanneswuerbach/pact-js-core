@@ -19,7 +19,7 @@
     "noUnusedLocals": true,
     "outDir": "dist"
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "src/consumerFfi.js"],
   "exclude": ["node_modules", "**/*.spec.ts", "**/__mocks__", "dist"],
   "compileOnSave": false
 }
