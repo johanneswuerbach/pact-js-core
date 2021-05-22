@@ -1,5 +1,5 @@
 import logger from '../logger';
-import q = require('q');
+import { timeout, TimeoutError } from 'promise-timeout'
 
 import { deprecate } from 'util';
 
@@ -44,49 +44,20 @@ export class Verifier {
     this.options = options;
   }
 
-  public verify(): q.Promise<string> {
-    logger.info('Verifying Pact Files');
+  public verify(): Promise<string> {
+   logger.info('Verifying Pact Files');
 
-    const deferred = q.defer<string>();
-    verify(this.options).then(
-      s => {
-        logger.info('Woo');
-        deferred.resolve(s);
-      },
-      e => {
-        logger.error(e);
-        deferred.reject(e);
+   return timeout(
+      verify(this.options),
+      this.options.timeout as number
+    ).catch((err: Error) => {
+      if (err instanceof TimeoutError) {
+        throw new Error(`Timeout waiting for verification process to complete`);
       }
-    );
-    return deferred.promise
-      .timeout(
-        (this.options.timeout as number) || 30000,
-        `Timeout waiting for verification process to complete`
-      )
-      .tap(() => logger.info('Pact Verification succeeded.'));
-
-    /*  
-    const deferred = q.defer<string>();
-    const instance = spawn.spawnBinary(
-      pactStandalone.verifierPath,
-      this.options,
-      this.__argMapping
-    );
-    const output: Array<stri  ng | Buffer> = [];
-    instance.stdout.on('data', l => output.push(l));
-    instance.stderr.on('data', l => output.push(l));
-    instance.once('close', code => {
-      const o = output.join('\n');
-      code === 0 ? deferred.resolve(o) : deferred.reject(new Error(o));
+      throw err;
     });
-
-    return deferred.promise
-      .timeout(
-        this.options.timeout as number,
-        `Timeout waiting for verification process to complete (PID: ${instance.pid})`
-      )
-      .tap(() => logger.info('Pact Verification succeeded.'));*/
   }
+
 }
 
 // Creates a new instance of the pact server with the specified option

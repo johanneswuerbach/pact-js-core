@@ -1,14 +1,11 @@
 import fs = require('fs');
-import q = require('q');
 import logger from './logger';
 import spawn from './spawn';
 import { DEFAULT_ARG } from './spawn';
 import pactStandalone from './pact-standalone';
 import path = require('path');
 import mkdirp = require('mkdirp');
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const checkTypes = require('check-types');
+import checkTypes = require('check-types');
 
 export class Message {
   public readonly options: MessageOptions;
@@ -26,19 +23,19 @@ export class Message {
     options.spec = options.spec || 3;
 
     checkTypes.assert.nonEmptyString(
-      options.consumer,
+      options.consumer || '',
       'Must provide the consumer name'
     );
     checkTypes.assert.nonEmptyString(
-      options.provider,
+      options.provider || '',
       'Must provide the provider name'
     );
     checkTypes.assert.nonEmptyString(
-      options.content,
+      options.content || '',
       'Must provide message content'
     );
     checkTypes.assert.nonEmptyString(
-      options.dir,
+      options.dir || '',
       'Must provide pact output dir'
     );
 
@@ -78,34 +75,33 @@ export class Message {
     this.options = options;
   }
 
-  public createMessage(): q.Promise<unknown> {
+  public createMessage(): Promise<unknown> {
     logger.info(`Creating message pact`);
-    const deferred = q.defer();
-    const { pactFileWriteMode, content, ...restOptions } = this.options;
 
-    const instance = spawn.spawnBinary(
-      pactStandalone.messagePath,
-      [{ pactFileWriteMode }, restOptions],
-      this.__argMapping
-    );
-    const output: Array<string | Buffer> = [];
-    instance.stdout.on('data', l => output.push(l));
-    instance.stderr.on('data', l => output.push(l));
-    instance.stdin.write(content);
-    instance.once('close', code => {
-      const o = output.join('\n');
-      logger.info(o);
+    return new Promise((resolve, reject) => {
+      const { pactFileWriteMode, content, ...restOptions } = this.options;
 
-      if (code === 0) {
-        return deferred.resolve(o);
-      } else {
-        return deferred.reject(o);
-      }
+      const instance = spawn.spawnBinary(
+        pactStandalone.messagePath,
+        [{ pactFileWriteMode }, restOptions],
+        this.__argMapping
+      );
+      const output: Array<string | Buffer> = [];
+      instance.stdout.on('data', l => output.push(l));
+      instance.stderr.on('data', l => output.push(l));
+      instance.stdin.write(content);
+      instance.stdin.end();
+      instance.once('close', code => {
+        const o = output.join('\n');
+        logger.info(o);
+
+        if (code === 0) {
+          return resolve(o);
+        } else {
+          return reject(o);
+        }
+      });
     });
-
-    instance.stdin.end();
-
-    return deferred.promise;
   }
 }
 

@@ -292,7 +292,7 @@ pact.verifyPacts({
 | `providerBaseUrl`           | true      | string  | Running API provider host endpoint.                                                                        |
 | `pactBrokerUrl`         | false     | string  | Base URL of the Pact Broker from which to retrieve the pacts. Required if `pactUrls` not given.                                                                        |
 | `provider`                  | false     | string  | Name of the provider if fetching from a Broker                                                             |
-| `consumerVersionSelectors`        | false     | ConsumerVersionSelector\|array  | Use [Selectors](https://docs.pact.io/selectors) to is a way we specify which pacticipants and versions we want to use when configuring verifications.                                                         |
+| `consumerVersionSelectors`        | false     | ConsumerVersionSelector\|array  | Use [Selectors](https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors) to is a way we specify which pacticipants and versions we want to use when configuring verifications.                                                         |
 | `consumerVersionTags`        | false     | string\|array  | Retrieve the latest pacts with given tag(s)                                                        |
 | `providerVersionTags`        | false     | string\|array  |  Tag(s) to apply to the provider application |
 | `includeWipPactsSince`      | false     | string  | Includes pact marked as WIP since this date. String in the format %Y-%m-%d or %Y-%m-%dT%H:%M:%S.000%:z |
@@ -311,6 +311,17 @@ pact.verifyPacts({
 | `logDir`   | false  | string   | Directory to output the pact.log file to
 | `logLevel`    | false     | LogLevel (string)          | Log level. One of "DEBUG", "ERROR", "WARN", "INFO" |
 
+The consumer version selector looks like this:
+
+```
+ConsumerVersionSelector {
+  tag?: string;
+  latest?: boolean;
+  consumer?: string;
+  fallbackTag?: string;
+}
+```
+See the [Pact Broker documentation on selectors](https://docs.pact.io/pact_broker/advanced_topics/consumer_version_selectors) for more information.
 
 ### Pact Broker Publishing
 

@@ -283,17 +283,6 @@ describe('Verifier Spec', () => {
       expect(v.options.consumerVersionTags).to.deep.eq(['tag-1']);
     });
   });
-  context('when consumerVersionTag is provided as a string', () => {
-    it('should convert the argument to an array', () => {
-      const v = verifierFactory({
-        providerBaseUrl: 'http://localhost',
-        pactUrls: [path.dirname(currentDir)],
-        consumerVersionTag: 'tag-1',
-      });
-
-      expect(v.options.consumerVersionTag).to.deep.eq(['tag-1']);
-    });
-  });
 
   context('when consumerVersionTags is provided as an array', () => {
     it('should not fail', () => {
@@ -306,22 +295,6 @@ describe('Verifier Spec', () => {
       ).to.not.throw(Error);
     });
   });
-
-  context(
-    'when consumerVersionTags and consumerVersionTag are provided',
-    () => {
-      it('should fail', () => {
-        expect(() => {
-          verifierFactory({
-            providerBaseUrl: 'http://localhost',
-            pactUrls: [path.dirname(currentDir)],
-            consumerVersionTags: ['tag-1'],
-            consumerVersionTag: ['tag-1'],
-          });
-        }).to.throw(Error);
-      });
-    }
-  );
 
   context('when providerVersionTags is not provided', () => {
     it('should not fail', () => {
@@ -346,18 +319,6 @@ describe('Verifier Spec', () => {
     });
   });
 
-  context('when providerVersionTag is provided as a string', () => {
-    it('should convert the argument to an array', () => {
-      const v = verifierFactory({
-        providerBaseUrl: 'http://localhost',
-        pactUrls: [path.dirname(currentDir)],
-        providerVersionTag: 'tag-1',
-      });
-
-      expect(v.options.providerVersionTag).to.deep.eq(['tag-1']);
-    });
-  });
-
   context('when providerVersionTags is provided as an array', () => {
     it('should not fail', () => {
       expect(() =>
@@ -369,22 +330,6 @@ describe('Verifier Spec', () => {
       ).to.not.throw(Error);
     });
   });
-
-  context(
-    'when providerVersionTags and providerVersionTag are provided',
-    () => {
-      it('should fail', () => {
-        expect(() => {
-          verifierFactory({
-            providerBaseUrl: 'http://localhost',
-            pactUrls: [path.dirname(currentDir)],
-            providerVersionTags: ['tag-1'],
-            providerVersionTag: ['tag-1'],
-          });
-        }).to.throw(Error);
-      });
-    }
-  );
 
   context('when using a bearer token', () => {
     context('and specifies a username or password', () => {
