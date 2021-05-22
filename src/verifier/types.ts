@@ -8,7 +8,7 @@ export interface ConsumerVersionSelector {
   all?: boolean;
 }
 
-interface CurrentVerifierOptions {
+export interface VerifierOptions {
   providerBaseUrl: string;
   provider?: string;
   pactUrls?: string[];
@@ -19,6 +19,7 @@ interface CurrentVerifierOptions {
   consumerVersionTags?: string | string[];
   providerVersionTags?: string | string[];
   consumerVersionSelectors?: ConsumerVersionSelector[];
+  providerStatesSetupUrl?: string;
   customProviderHeaders?: string[];
   publishVerificationResult?: boolean;
   providerVersion?: string;
@@ -32,13 +33,3 @@ interface CurrentVerifierOptions {
   logDir?: string;
   logLevel?: LogLevel;
 }
-
-interface DeprecatedVerifierOptions {
-  consumerVersionTag?: string | string[];
-  providerStatesSetupUrl?: string;
-  providerVersionTag?: string | string[];
-  tags?: string[];
-}
-
-export type VerifierOptions = CurrentVerifierOptions &
-  DeprecatedVerifierOptions;

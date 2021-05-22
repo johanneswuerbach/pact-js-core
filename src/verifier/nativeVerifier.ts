@@ -5,7 +5,6 @@ import url = require('url');
 import fs = require('fs');
 import { flatten } from 'underscore';
 import { VerifierOptions } from './types';
-import _ = require('underscore');
 
 // TODO: make this dynamic, and download during install/on-demand
 const dll = path.resolve(
@@ -27,20 +26,43 @@ const lib = ffi.Library(dll, {
   verify: ['int', ['string']],
 });
 
-export const verify = (opts: VerifierOptions): Promise<string> => {
-  return new Promise<string>((resolve, reject) => {
-    lib.init('LOG_LEVEL');
-    console.log(JSON.stringify(opts));
-    const u = url.parse(opts.providerBaseUrl);
+type UriType = 'URL' | 'DIRECTORY' | 'FILE' | 'FILE_NOT_FOUND';
 
+// Todo: Extract this, and possibly rename
+const fileType = (uri: string): UriType => {
+  if (/https?:/.test(url.parse(uri).protocol || '')) {
+    return 'URL';
+  }
+  try {
+    if (fs.statSync(path.normalize(uri)).isDirectory()) {
+      return 'DIRECTORY';
+    } else {
+      return 'FILE';
+    }
+  } catch (e) {
+    throw new Error(`Pact file or directory '${uri}' doesn't exist`);
+  }
+};
+
+export const verify = (opts: VerifierOptions): Promise<string> => {
+  // Todo: probably separate out the sections of this logic into separate promises
+  return new Promise<string>((resolve, reject) => {
+    // Todo: Does this need to be a specific log level?
+    lib.init('LOG_LEVEL');
+    // Todo: Replace all console.logs with logger calls
+    console.log(JSON.stringify(opts));
+
+    // todo, make the mapped args array immutable
     const mappedArgs = [];
 
+    // Todo: use a similar argument mapper pattern to the spawn, for less boilerplate
     const arg = <T>(name: string, val?: T): void => {
       if (val) {
         mappedArgs.push(name, val);
       }
     };
 
+    // Todo: Map all arguments
     arg('--provider-name', opts.provider);
     arg('--state-change-url', opts.providerStatesSetupUrl);
     arg(
@@ -48,6 +70,7 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
       opts.logLevel ? opts.logLevel.toLocaleLowerCase() : undefined
     );
 
+    const u = url.parse(opts.providerBaseUrl);
     arg('--port', u.port);
     arg('--hostname', u.hostname);
     arg('--broker-url', opts.pactBrokerUrl);
@@ -74,27 +97,27 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
     }
 
     if (opts.pactUrls) {
-      _.chain(opts.pactUrls)
-        .map((uri: string) => {
-          // only check local files
-          if (/https?:/.test(url.parse(uri).protocol || '')) {
-            mappedArgs.push('--url', uri);
-          } else {
-            try {
-              if (fs.statSync(path.normalize(uri)).isDirectory()) {
-                mappedArgs.push('--dir', uri);
-              } else {
-                mappedArgs.push('--file', uri);
-              }
-            } catch (e) {
-              throw new Error(`Pact file or directory '${uri}' doesn't exist`);
+      mappedArgs.push(
+        ...opts.pactUrls.reduce<Array<string>>(
+          (acc: Array<string>, uri: string) => {
+            switch (fileType(uri)) {
+              case 'URL':
+                return [...acc, '--url', uri];
+              case 'DIRECTORY':
+                return [...acc, '--dir', uri];
+              case 'FILE':
+                return [...acc, '--file', uri];
+              case 'FILE_NOT_FOUND':
+                throw new Error(
+                  `Pact file or directory '${uri}' doesn't exist`
+                );
+              default:
+                return acc;
             }
-          }
-          // HTTP paths are OK
-          return uri;
-        })
-        .compact()
-        .value();
+          },
+          []
+        )
+      );
     }
 
     const request = mappedArgs.join('\n');
