@@ -3,7 +3,6 @@ import ffi = require('ffi-napi');
 import path = require('path');
 import url = require('url');
 import fs = require('fs');
-import { flatten } from 'underscore';
 import { VerifierOptions } from './types';
 
 // TODO: make this dynamic, and download during install/on-demand
@@ -87,13 +86,21 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
       mappedArgs.push('--enable-pending');
     }
 
-    if (opts.consumerVersionTags && opts.consumerVersionTags.length !== 0) {
+    if (opts.consumerVersionTags) {
       mappedArgs.push('--consumer-version-tags');
-      mappedArgs.push(flatten([opts.consumerVersionTags]).join(','));
+      mappedArgs.push(
+        Array.isArray(opts.consumerVersionTags)
+          ? opts.consumerVersionTags.join(',')
+          : opts.consumerVersionTags
+      );
     }
-    if (opts.providerVersionTags && opts.providerVersionTags.length !== 0) {
+    if (opts.providerVersionTags) {
       mappedArgs.push('--provider-version-tags');
-      mappedArgs.push(flatten([opts.providerVersionTags]).join(','));
+      mappedArgs.push(
+        Array.isArray(opts.providerVersionTags)
+          ? opts.providerVersionTags.join(',')
+          : opts.providerVersionTags
+      );
     }
 
     if (opts.pactUrls) {
