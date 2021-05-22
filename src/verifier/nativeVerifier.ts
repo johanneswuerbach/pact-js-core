@@ -28,7 +28,7 @@ const lib = ffi.Library(dll, {
 });
 
 export const verify = (opts: VerifierOptions): Promise<string> => {
-  return new Promise((resolve, reject) => {
+  return new Promise<string>((resolve, reject) => {
     lib.init('LOG_LEVEL');
     console.log(JSON.stringify(opts));
     const u = url.parse(opts.providerBaseUrl);
@@ -100,7 +100,7 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
     const request = mappedArgs.join('\n');
     console.log('sending arguments to FFI:', request);
 
-    lib.verify.async(request, (err: Error, res: unknown) => {
+    lib.verify.async(request, (err: Error, res: number) => {
       console.log('response from verifier', err, res);
       if (err) {
         console.error(err);
