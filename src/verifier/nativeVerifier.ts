@@ -3,6 +3,7 @@ import url = require('url');
 import fs = require('fs');
 import { VerifierOptions } from './types';
 import { verifierLib } from './ffiVerifier';
+import logger from '../logger';
 
 type UriType = 'URL' | 'DIRECTORY' | 'FILE' | 'FILE_NOT_FOUND';
 
@@ -28,6 +29,27 @@ const fileType = (uri: string): UriType => {
   }
 };
 
+const pactCrashMessage = (
+  extraMessage: string
+) => `!!!!!!!!! PACT CRASHED !!!!!!!!!
+
+${extraMessage}
+
+This is almost certainly a bug in pact-js-core. It would be great if you could
+open a bug report at: https://github.com/pact-foundation/pact-js-core/issues
+so that we can fix it.
+
+There is additional debugging information above. If you open a bug report, 
+please rerun with logLevel: 'debug' set in the VerifierOptions, and include the
+full output.
+
+SECURITY WARNING: Before including your log in the issue tracker, make sure you
+have removed sensitive info such as login credentials and urls that you don't want
+to share with the world.
+
+Lastly, we're sorry about this!
+`;
+
 export const verify = (opts: VerifierOptions): Promise<string> => {
   // Todo: probably separate out the sections of this logic into separate promises
   return new Promise<string>((resolve, reject) => {
@@ -36,8 +58,6 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
     // LOG_LEVEL
     // < .. >
     verifierLib.init('LOG_LEVEL');
-    // Todo: Replace all console.logs with logger calls
-    console.log(JSON.stringify(opts));
 
     // todo, make the mapped args array immutable
     const mappedArgs = [];
@@ -116,47 +136,38 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
     }
 
     const request = mappedArgs.join('\n');
-    console.log('sending arguments to FFI:', request);
+    logger.debug('sending arguments to FFI:');
+    logger.debug(request);
 
     verifierLib.verify.async(request, (err: Error, res: number) => {
-      console.log('response from verifier', err, res);
+      logger.debug(`response from verifier: ${err}, ${res}`);
       if (err) {
-        console.error(err);
+        logger.error(err);
         reject(err);
       } else {
         switch (res) {
           case VERIFICATION_SUCCESSFUL:
-            console.log('Verification successful');
+            logger.info('Verification successful');
             resolve(`finished: ${res}`);
             break;
           case VERIFICATION_FAILED:
-            console.log('Failed verififcation');
+            logger.error('Verification failed');
             reject('Verfication failed');
             break;
           case INVALID_ARGUMENTS:
-            console.error();
-            console.error(
-              '!!! The underlying Pact core was invoked incorrectly !!!'
+            logger.error(
+              pactCrashMessage(
+                'The underlying pact core was invoked incorrectly.'
+              )
             );
-            console.error(
-              'This is a bug in pact-core-js. There is additional debuging information above'
-            );
-            console.error(
-              'Please open a bug report at: https://github.com/pact-foundation/pact-js-core/issues'
-            );
-            console.error();
             reject('Verification was unable to run');
             break;
           default:
-            console.error();
-            console.error('!!! The underlying Pact core panicked !!!');
-            console.error(
-              'This is a bug in pact-core-js. There is additional debuging information above'
+            logger.error(
+              pactCrashMessage(
+                'The underlying pact core crashed in an unexpected way.'
+              )
             );
-            console.error(
-              'Please open a bug report at: https://github.com/pact-foundation/pact-js-core/issues'
-            );
-            console.error();
             reject('Verification was unable to run');
             break;
         }
