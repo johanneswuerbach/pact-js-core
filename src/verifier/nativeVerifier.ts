@@ -143,6 +143,11 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
       logger.debug(`response from verifier: ${err}, ${res}`);
       if (err) {
         logger.error(err);
+        logger.error(
+          pactCrashMessage(
+            'The underlying pact core returned an error through the ffi interface'
+          )
+        );
         reject(err);
       } else {
         switch (res) {
@@ -151,8 +156,8 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
             resolve(`finished: ${res}`);
             break;
           case VERIFICATION_FAILED:
-            logger.error('Verification failed');
-            reject('Verfication failed');
+            logger.error('Verification unsuccessful');
+            reject(new Error('Verfication failed'));
             break;
           case INVALID_ARGUMENTS:
             logger.error(
@@ -160,7 +165,7 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
                 'The underlying pact core was invoked incorrectly.'
               )
             );
-            reject('Verification was unable to run');
+            reject(new Error('Verification was unable to run'));
             break;
           default:
             logger.error(
@@ -168,7 +173,7 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
                 'The underlying pact core crashed in an unexpected way.'
               )
             );
-            reject('Verification was unable to run');
+            reject(new Error('Pact core crashed'));
             break;
         }
       }
