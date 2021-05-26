@@ -11,32 +11,6 @@ const applyDefaults = (options: VerifierOptions): VerifierOptions => ({
 
 export class Verifier {
   public readonly options: VerifierOptions;
-  /* private readonly __argMapping = {
-    pactUrls: DEFAULT_ARG,
-    providerBaseUrl: '--provider-base-url',
-    pactBrokerUrl: '--pact-broker-base-url',
-    providerStatesSetupUrl: '--provider-states-setup-url',
-    pactBrokerUsername: '--broker-username',
-    pactBrokerPassword: '--broker-password',
-    pactBrokerToken: '--broker-token',
-    consumerVersionTag: '--consumer-version-tag',
-    providerVersionTag: '--provider-version-tag',
-    consumerVersionTags: '--consumer-version-tag',
-    providerVersionTags: '--provider-version-tag',
-    consumerVersionSelectors: '--consumer-version-selector',
-    publishVerificationResult: '--publish-verification-results',
-    providerVersion: '--provider-app-version',
-    provider: '--provider',
-    enablePending: '--enable-pending',
-    customProviderHeaders: '--custom-provider-header',
-    verbose: '--verbose',
-    includeWipPactsSince: '--include-wip-pacts-since',
-    monkeypatch: '--monkeypatch',
-    format: '--format',
-    out: '--out',
-    logDir: '--log-dir',
-    logLevel: '--log-level',
-  }; */
 
   constructor(options: VerifierOptions) {
     this.options = applyDefaults(options);

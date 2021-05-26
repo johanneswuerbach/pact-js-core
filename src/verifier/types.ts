@@ -18,13 +18,13 @@ export interface VerifierOptions {
   pactBrokerToken?: string;
   consumerVersionTags?: string | string[];
   providerVersionTags?: string | string[];
-  consumerVersionSelectors?: ConsumerVersionSelector[];
   providerStatesSetupUrl?: string;
   publishVerificationResult?: boolean;
   providerVersion?: string;
   enablePending?: boolean;
   // Todo in FFI
   includeWipPactsSince?: string;
+  consumerVersionSelectors?: ConsumerVersionSelector[];
   logLevel?: LogLevel;
   // Todo in Rust maybe
   customProviderHeaders?: string[];

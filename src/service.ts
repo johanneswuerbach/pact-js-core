@@ -340,6 +340,8 @@ export interface ServiceOptions {
 }
 
 // This is the pact binary's log level, which is a subset of the log levels for pact-core
+// It is the same type for both Ruby and Rust. If either of them start supporting more
+// levels, we'll need to change the type.
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface HTTPConfig {

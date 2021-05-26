@@ -1,5 +1,5 @@
 import path = require('path');
-import { initialiseFfi } from './ffi';
+import { initialiseFfi } from './ffi/ffi';
 
 // We have to declare this twice because typescript can't figure it out
 // There's a workaround here we could employ:

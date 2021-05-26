@@ -1,33 +1,14 @@
-import path = require('path');
-import url = require('url');
-import fs = require('fs');
 import { VerifierOptions } from './types';
 import { verifierLib } from './ffiVerifier';
 import logger from '../logger';
-
-type UriType = 'URL' | 'DIRECTORY' | 'FILE' | 'FILE_NOT_FOUND';
+import { argMapping } from './arguments';
+import { argumentMapper } from './argumentMapper';
 
 const VERIFICATION_SUCCESSFUL = 0;
 const VERIFICATION_FAILED = 1;
 // 2 - null string passed
 // 3 - method panicked
 const INVALID_ARGUMENTS = 4;
-
-// Todo: Extract this, and possibly rename
-const fileType = (uri: string): UriType => {
-  if (/https?:/.test(url.parse(uri).protocol || '')) {
-    return 'URL';
-  }
-  try {
-    if (fs.statSync(path.normalize(uri)).isDirectory()) {
-      return 'DIRECTORY';
-    } else {
-      return 'FILE';
-    }
-  } catch (e) {
-    throw new Error(`Pact file or directory '${uri}' doesn't exist`);
-  }
-};
 
 const pactCrashMessage = (
   extraMessage: string
@@ -59,83 +40,8 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
     // < .. >
     verifierLib.init('LOG_LEVEL');
 
-    // todo, make the mapped args array immutable
-    const mappedArgs = [];
+    const request = argumentMapper(argMapping, opts).join('\n');
 
-    // Todo: use a similar argument mapper pattern to the spawn, for less boilerplate
-    const arg = <T>(name: string, val?: T): void => {
-      if (val) {
-        mappedArgs.push(name, val);
-      }
-    };
-
-    // Todo: Map all arguments
-    arg('--provider-name', opts.provider);
-    arg('--state-change-url', opts.providerStatesSetupUrl);
-    arg(
-      '--loglevel',
-      opts.logLevel ? opts.logLevel.toLocaleLowerCase() : undefined
-    );
-
-    const u = url.parse(opts.providerBaseUrl);
-    arg('--port', u.port);
-    arg('--hostname', u.hostname);
-    arg('--broker-url', opts.pactBrokerUrl);
-    arg('--user', opts.pactBrokerUsername);
-    arg('--password', opts.pactBrokerPassword);
-    arg('--provider-version', opts.providerVersion);
-    arg('--broker-token', opts.pactBrokerToken);
-
-    if (opts.publishVerificationResult) {
-      mappedArgs.push('--publish');
-    }
-
-    if (opts.enablePending) {
-      mappedArgs.push('--enable-pending');
-    }
-
-    if (opts.consumerVersionTags) {
-      mappedArgs.push('--consumer-version-tags');
-      mappedArgs.push(
-        Array.isArray(opts.consumerVersionTags)
-          ? opts.consumerVersionTags.join(',')
-          : opts.consumerVersionTags
-      );
-    }
-    if (opts.providerVersionTags) {
-      mappedArgs.push('--provider-version-tags');
-      mappedArgs.push(
-        Array.isArray(opts.providerVersionTags)
-          ? opts.providerVersionTags.join(',')
-          : opts.providerVersionTags
-      );
-    }
-
-    if (opts.pactUrls) {
-      mappedArgs.push(
-        ...opts.pactUrls.reduce<Array<string>>(
-          (acc: Array<string>, uri: string) => {
-            switch (fileType(uri)) {
-              case 'URL':
-                return [...acc, '--url', uri];
-              case 'DIRECTORY':
-                return [...acc, '--dir', uri];
-              case 'FILE':
-                return [...acc, '--file', uri];
-              case 'FILE_NOT_FOUND':
-                throw new Error(
-                  `Pact file or directory '${uri}' doesn't exist`
-                );
-              default:
-                return acc;
-            }
-          },
-          []
-        )
-      );
-    }
-
-    const request = mappedArgs.join('\n');
     logger.debug('sending arguments to FFI:');
     logger.debug(request);
 
