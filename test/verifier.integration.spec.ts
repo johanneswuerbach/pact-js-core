@@ -225,9 +225,6 @@ describe.only('Verifier Integration Spec', () => {
               ),
             ],
             providerStatesSetupUrl: providerStatesSetupUrl,
-            publishVerificationResult: true,
-            providerVersion: '1.0.0',
-            provider: 'Someprovider',
           }).verify()
         ).to.eventually.be.fulfilled);
     });
@@ -246,9 +243,6 @@ describe.only('Verifier Integration Spec', () => {
                 ),
               ],
               providerStatesSetupUrl: providerStatesSetupUrl,
-              publishVerificationResult: true,
-              providerVersion: '1.0.0',
-              provider: 'Someprovider',
             }).verify()
           ).to.eventually.be.fulfilled);
       }
@@ -268,9 +262,6 @@ describe.only('Verifier Integration Spec', () => {
                 ),
               ],
               providerStatesSetupUrl: providerStatesSetupUrl,
-              publishVerificationResult: true,
-              providerVersion: '1.0.0',
-              provider: 'Someprovider',
             }).verify()
           ).to.eventually.be.fulfilled);
       }
