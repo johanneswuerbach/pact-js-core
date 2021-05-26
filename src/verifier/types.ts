@@ -20,16 +20,23 @@ export interface VerifierOptions {
   providerVersionTags?: string | string[];
   consumerVersionSelectors?: ConsumerVersionSelector[];
   providerStatesSetupUrl?: string;
-  customProviderHeaders?: string[];
   publishVerificationResult?: boolean;
   providerVersion?: string;
   enablePending?: boolean;
-  timeout?: number;
-  verbose?: boolean;
+  // Todo in FFI
   includeWipPactsSince?: string;
+  logLevel?: LogLevel;
+  // Todo in Rust maybe
+  customProviderHeaders?: string[];
+  timeout?: number;
+
+  logDir?: string;
+
+  // Kill
+  verbose?: boolean;
   monkeypatch?: string;
+
+  // Unknown?
   format?: 'json' | 'xml' | 'progress' | 'RspecJunitFormatter';
   out?: string;
-  logDir?: string;
-  logLevel?: LogLevel;
 }

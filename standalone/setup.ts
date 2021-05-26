@@ -8,7 +8,7 @@ import { join } from './urls';
 export function setup(platform?: string, arch?: string): Promise<Data[]> {
   const entries = getBinaryEntries(platform, arch);
   return Promise.resolve(
-    entries.map(entry => ({
+    entries.map((entry) => ({
       binaryDownloadPath: join(entry.downloadLocation, entry.binary),
       checksumDownloadPath: join(PACT_DEFAULT_LOCATION, entry.binaryChecksum),
       filepath: path.resolve(__dirname, entry.binary),

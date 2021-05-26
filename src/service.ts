@@ -43,7 +43,7 @@ export abstract class AbstractService extends events.EventEmitter {
   protected constructor(
     command: string,
     options: ServiceOptions,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
     argMapping: any,
     cliVerb?: CliVerbOptions
   ) {
@@ -175,7 +175,7 @@ export abstract class AbstractService extends events.EventEmitter {
       this.__instance.stdout.on('data', catchPort);
     }
 
-    this.__instance.stderr.on('data', data =>
+    this.__instance.stderr.on('data', (data) =>
       logger.error(`Pact Binary Error: ${data}`)
     );
 

@@ -21,9 +21,9 @@ export default (platform?: string, arch?: string): Promise<Data[]> => {
     ] as Data[]);
   }
   return setup(platform, arch)
-    .then(entries => Promise.all(entries.map(d => download(d))))
-    .then(entries => Promise.all(entries.map(d => extract(d))))
-    .then(entries => {
+    .then((entries) => Promise.all(entries.map((d) => download(d))))
+    .then((entries) => Promise.all(entries.map((d) => extract(d))))
+    .then((entries) => {
       console.log(
         '\n\n' +
           chalk.bgYellow(

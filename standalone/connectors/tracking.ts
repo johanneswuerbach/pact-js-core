@@ -39,7 +39,7 @@ export const trackDownload = (platform: string): void => {
     );
     // Trying to find all environment variables of all possible CI services to get more accurate stats
     // but it's still not 100% since not all systems have unique environment variables for their CI server
-    const isCI = CIs.some(key => process.env[key] !== undefined);
+    const isCI = CIs.some((key) => process.env[key] !== undefined);
     request
       .post({
         url: 'https://www.google-analytics.com/collect',
@@ -49,6 +49,7 @@ export const trackDownload = (platform: string): void => {
           cid: Math.round(2147483647 * Math.random()).toString(), // Anonymous Client ID.
           t: 'screenview', // Screenview hit type.
           an: 'pact-install', // App name.
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
           av: require('../../../package.json').version, // App version.
           aid: 'pact-node', // App Id - pact-node for historical reasons
           aiid: `standalone-${PACT_STANDALONE_VERSION}`, // App Installer Id.

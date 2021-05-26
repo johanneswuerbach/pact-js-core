@@ -20,7 +20,7 @@ describe.only('Verifier Integration Spec', () => {
   };
 
   before(() =>
-    providerMock(PORT).then(s => {
+    providerMock(PORT).then((s) => {
       console.log(`Pact Broker Mock listening on port: ${PORT}`);
       server = s;
     })

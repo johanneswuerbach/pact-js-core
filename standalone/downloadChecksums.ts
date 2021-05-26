@@ -11,14 +11,14 @@ import { Data } from './types';
 export function downloadChecksums(): Promise<void> {
   console.log(chalk.gray(`Downloading All Pact Standalone Binary Checksums.`));
   return Promise.all(
-    CONFIG.binaries.map(value =>
+    CONFIG.binaries.map((value) =>
       setup(value.platform, value.arch)
         .then((allData: Data[]) =>
           allData.filter(({ checksumFilepath }) => checksumFilepath !== 'skip')
         )
         .then((checksums: Data[]) =>
           Promise.all(
-            checksums.map(data =>
+            checksums.map((data) =>
               downloadFileRetry(
                 data.checksumDownloadPath,
                 data.checksumFilepath
@@ -32,7 +32,7 @@ export function downloadChecksums(): Promise<void> {
                     )
                   );
                 },
-                error =>
+                (error) =>
                   throwError(
                     `Error downloading checksum from ${data.checksumDownloadPath}: ${error}`
                   )

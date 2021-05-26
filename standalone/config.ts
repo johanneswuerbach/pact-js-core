@@ -28,6 +28,7 @@ function findPackageConfig(location: string, tries = 10): PackageConfig {
   }
   const packagePath = path.resolve(location, 'package.json');
   if (fs.existsSync(packagePath)) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const config = require(packagePath).config;
     if (config && (config.pact_binary_location || config.pact_do_not_track)) {
       return {
@@ -108,7 +109,7 @@ export function getBinaryEntries(
   arch: string = process.arch
 ): BinaryEntry[] {
   const entries = CONFIG.binaries.filter(
-    value =>
+    (value) =>
       value.platform === platform && (value.arch ? value.arch === arch : true)
   );
 

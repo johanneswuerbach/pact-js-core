@@ -38,22 +38,24 @@ export function extract(data: Data): Promise<Data> {
   // Validate checksum to make sure it's the correct binary
   const basename = path.basename(data.filepath);
   return (
-    (data.checksumFilepath !== 'skip'
-      ? sumchecker(
-          'sha1',
-          data.checksumFilepath,
-          path.dirname(data.filepath),
-          basename
-        ).then(
-          () => console.log(chalk.green(`Checksum passed for '${basename}'.`)),
-          () =>
-            throwError(
-              `Checksum rejected for file '${basename}' with checksum ${path.basename(
-                data.checksumFilepath
-              )}`
-            )
-        )
-      : Promise.resolve()
+    (
+      data.checksumFilepath !== 'skip'
+        ? sumchecker(
+            'sha1',
+            data.checksumFilepath,
+            path.dirname(data.filepath),
+            basename
+          ).then(
+            () =>
+              console.log(chalk.green(`Checksum passed for '${basename}'.`)),
+            () =>
+              throwError(
+                `Checksum rejected for file '${basename}' with checksum ${path.basename(
+                  data.checksumFilepath
+                )}`
+              )
+          )
+        : Promise.resolve()
     )
       // Extract files into their platform folder
       .then(() => {
@@ -64,7 +66,7 @@ export function extract(data: Data): Promise<Data> {
                 path: data.platformFolderPath,
               })
             )
-            .on('entry', entry => entry.autodrain())
+            .on('entry', (entry) => entry.autodrain())
             .promise();
         } else if (data.filepath.endsWith('.tar.gz')) {
           tar.x({

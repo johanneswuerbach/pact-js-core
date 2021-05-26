@@ -1,31 +1,16 @@
-// https://github.com/node-ffi/node-ffi/wiki/Node-FFI-Tutorial
-import ffi = require('ffi-napi');
 import path = require('path');
 import url = require('url');
 import fs = require('fs');
 import { VerifierOptions } from './types';
-
-// TODO: make this dynamic, and download during install/on-demand
-const dll = path.resolve(
-  process.cwd(),
-  'ffi',
-  'libpact_verifier_ffi-osx-x86_64.dylib'
-);
-
-// Map the FFI c interface
-//
-// char* version();
-// void free_string(char* s);
-// int verify(char* s);
-const lib = ffi.Library(dll, {
-  init: ['string', ['string']],
-  version: ['string', []],
-  // eslint-disable-next-line @typescript-eslint/camelcase
-  free_string: ['void', ['string']],
-  verify: ['int', ['string']],
-});
+import { verifierLib } from './ffiVerifier';
 
 type UriType = 'URL' | 'DIRECTORY' | 'FILE' | 'FILE_NOT_FOUND';
+
+const VERIFICATION_SUCCESSFUL = 0;
+const VERIFICATION_FAILED = 1;
+// 2 - null string passed
+// 3 - method panicked
+const INVALID_ARGUMENTS = 4;
 
 // Todo: Extract this, and possibly rename
 const fileType = (uri: string): UriType => {
@@ -47,7 +32,10 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
   // Todo: probably separate out the sections of this logic into separate promises
   return new Promise<string>((resolve, reject) => {
     // Todo: Does this need to be a specific log level?
-    lib.init('LOG_LEVEL');
+    // PACT_LOG_LEVEL
+    // LOG_LEVEL
+    // < .. >
+    verifierLib.init('LOG_LEVEL');
     // Todo: Replace all console.logs with logger calls
     console.log(JSON.stringify(opts));
 
@@ -130,18 +118,47 @@ export const verify = (opts: VerifierOptions): Promise<string> => {
     const request = mappedArgs.join('\n');
     console.log('sending arguments to FFI:', request);
 
-    lib.verify.async(request, (err: Error, res: number) => {
+    verifierLib.verify.async(request, (err: Error, res: number) => {
       console.log('response from verifier', err, res);
       if (err) {
         console.error(err);
         reject(err);
       } else {
-        if (res === 0) {
-          console.log('Verification successful');
-          resolve(`finished: ${res}`);
-        } else {
-          console.log('Failed verififcation');
-          reject('Verfication failed');
+        switch (res) {
+          case VERIFICATION_SUCCESSFUL:
+            console.log('Verification successful');
+            resolve(`finished: ${res}`);
+            break;
+          case VERIFICATION_FAILED:
+            console.log('Failed verififcation');
+            reject('Verfication failed');
+            break;
+          case INVALID_ARGUMENTS:
+            console.error();
+            console.error(
+              '!!! The underlying Pact core was invoked incorrectly !!!'
+            );
+            console.error(
+              'This is a bug in pact-core-js. There is additional debuging information above'
+            );
+            console.error(
+              'Please open a bug report at: https://github.com/pact-foundation/pact-js-core/issues'
+            );
+            console.error();
+            reject('Verification was unable to run');
+            break;
+          default:
+            console.error();
+            console.error('!!! The underlying Pact core panicked !!!');
+            console.error(
+              'This is a bug in pact-core-js. There is additional debuging information above'
+            );
+            console.error(
+              'Please open a bug report at: https://github.com/pact-foundation/pact-js-core/issues'
+            );
+            console.error();
+            reject('Verification was unable to run');
+            break;
         }
       }
     });
