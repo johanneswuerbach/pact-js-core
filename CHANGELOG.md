@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [12.0.0-beta.1](https://github.com/pact-foundation/pact-js-core/compare/v12.0.0-beta.0...v12.0.0-beta.1) (2021-06-28)
+
+
+### Fixes and Improvements
+
+* Correct exposed log levels to 'debug' | 'error' | 'info' | 'trace' | 'warn'. ([6e80067](https://github.com/pact-foundation/pact-js-core/commit/6e800672b3343fc1a312ace63cd902be34c3cd33))
+* Expose logger as a base level export ([1926a9e](https://github.com/pact-foundation/pact-js-core/commit/1926a9ea201c7fa06f4caa5d9d03d58e085865f5))
+
 ## [12.0.0-beta.0](https://github.com/pact-foundation/pact-js-core/compare/v11.0.1...v12.0.0-beta.0) (2021-06-28)
 
 
