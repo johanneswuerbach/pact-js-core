@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [12.0.0-beta.0](https://github.com/pact-foundation/pact-js-core/compare/v11.0.1...v12.0.0-beta.0) (2021-06-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* The verbose option has been removed, as it is now implied by `logLevel` of `DEBUG` or `TRACE`
+* All logging and reporting is now on standard out. This was the default before. This means the logDir / format / out options are no longer supported. If your ecosystem needs the ability to customise logging and reporting, please let us know by opening an issue.
+* The undocumented option monkeypatch has been removed. The use cases for this feature are mostly covered by other options.
+* customProviderHeaders has been removed. Please see the request [filter documentation](https://github.com/pact-foundation/pact-js#modify-requests-prior-to-verification-request-filters) in pact-js.
+
+### Features
+
+* Use the native ffi bindings for the Verifier instead of the ruby bindings ([1aea16f](https://github.com/pact-foundation/pact-js-core/commit/1aea16f0760b68661db4ee4500ec4e00dbe408fd))
+
+
+* Add migration docs and update readme ([6bd0df0](https://github.com/pact-foundation/pact-js-core/commit/6bd0df07bd85c4ccef34ea0149e192b11aead1a2))
+
 ### [11.0.1](https://github.com/pact-foundation/pact-js-core/compare/v11.0.0...v11.0.1) (2021-06-21)
 
 
