@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [12.0.0-beta.4](https://github.com/pact-foundation/pact-js-core/compare/v12.0.0-beta.3...v12.0.0-beta.4) (2021-06-29)
+
+
+### Fixes and Improvements
+
+* Print warnings if 'latest' is used as a tag during verification ([92a13df](https://github.com/pact-foundation/pact-js-core/commit/92a13df3e8a1aa8900621ca3a910ed102fd7ba69))
+
 ## [12.0.0-beta.3](https://github.com/pact-foundation/pact-js-core/compare/v12.0.0-beta.2...v12.0.0-beta.3) (2021-06-28)
 
 ## [12.0.0-beta.2](https://github.com/pact-foundation/pact-js-core/compare/v12.0.0-beta.1...v12.0.0-beta.2) (2021-06-28)
