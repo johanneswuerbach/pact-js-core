@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [12.0.0-beta.5](https://github.com/pact-foundation/pact-js-core/compare/v12.0.0-beta.4...v12.0.0-beta.5) (2021-06-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* setLogLevel no longer accepts or returns a `number`
+
+* Refactor logger to make it easier to use ffi logs ([60a453d](https://github.com/pact-foundation/pact-js-core/commit/60a453dcb001badfcfd7740bc4efec20846692f1))
+
 ## [12.0.0-beta.4](https://github.com/pact-foundation/pact-js-core/compare/v12.0.0-beta.3...v12.0.0-beta.4) (2021-06-29)
 
 
